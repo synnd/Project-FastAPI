@@ -9,7 +9,6 @@ def get_users_service(
     page: int = 1, 
     limit: int = 10
 ):
-    
     query = db.query(UserModel)
     
     if name:
@@ -21,7 +20,6 @@ def get_users_service(
     if is_active is not None:
         query = query.filter(UserModel.is_active == is_active)
         
-    
     total = query.count()
     offset = (page - 1) * limit
     users = query.offset(offset).limit(limit).all()

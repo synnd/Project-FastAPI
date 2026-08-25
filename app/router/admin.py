@@ -1,19 +1,22 @@
-from app.database.database import get_db
-from app.schemas.response import create_response
-from app.schemas.users import UserResponse
-from app.dependencles.dependencles import get_current_user,get_current_admin
-from app.services.admin import get_users_service
-
-from fastapi import APIRouter, Depends, HTTPException,status,Request
+from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 
+from app.database.database import get_db
+from app.schemas.response import create_response
+from app.dependencles.dependencles import get_current_admin
+from app.services.admin import get_users_service
+from app.schemas.users import UserResponse
 
+router = APIRouter(prefix="/admin", tags=['ADMIN'])
 
-router= APIRouter(prefix="/admin", tags=['admin'])
-
-@router.get('/')
-def search_user(
+@router.get(
+    "/users",
+    status_code=status.HTTP_200_OK,
+    summary="Lấy danh sách người dùng toàn hệ thống",
+    description="Lọc, tìm kiếm và lấy toàn bộ danh sách người dùng trong hệ thống. Chỉ tài khoản ADMIN mới có quyền truy cập."
+)
+def get_users(
     req: Request,
     name: Optional[str] = None,
     email: Optional[str] = None,
@@ -24,8 +27,6 @@ def search_user(
     db: Session = Depends(get_db)
 ):
     users, total = get_users_service(db, name, email, is_active, page, limit)
-    
-    
     users_data = [UserResponse.model_validate(user) for user in users]
     
     response_data = {
@@ -41,4 +42,3 @@ def search_user(
         message="Lấy danh sách người dùng thành công",
         data=response_data
     )
-

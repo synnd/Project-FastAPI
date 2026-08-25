@@ -18,7 +18,7 @@ class CreateProjectMember(BaseModel):
 class ProjectResponse(BaseModel):
     id : int
     name : str
-    description : str
+    description : Optional[str] = None
     owner_id : int
     created_at : datetime
     

@@ -49,3 +49,22 @@ def decode_access_token(token: str):
         raise TokenExpiredException("Token đã hết hạn, vui lòng đăng nhập lại")
     except jwt.InvalidTokenError:
         raise TokenInvalidException("Token không hợp lệ hoặc đã bị chỉnh sửa")
+
+def create_refresh_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(days=7) # 7 ngày
+    
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.now(timezone.utc),
+        "type": "refresh"
+    })
+    
+    return jwt.encode(
+        payload=to_encode,
+        key=SECRET_KEY,
+        algorithm=ALGORITHM
+    )

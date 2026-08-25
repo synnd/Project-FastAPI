@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, func
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, func, Boolean
 from sqlalchemy.orm import relationship
 import enum
 from app.database.database import Base
@@ -15,6 +15,9 @@ class ProjectModel(Base):
     description = Column(Text, nullable=True) 
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False) # Người sở hữu
     created_at = Column(DateTime, default=func.now(), nullable=False) 
+    is_deleted = Column(Boolean, default=False, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
+
 
     # Quan hệ
     owner = relationship("UserModel", back_populates="owned_projects") #người sở hữu 

@@ -9,8 +9,13 @@ class CreateUser(BaseModel):
     password_hash :str = Field(..., min_length=6, max_length=30, description="Nhập mật khẩu của bạn")
 
 class UserLogin(BaseModel):
-    email : EmailStr = Field(..., description="Email đăng nhập hợp lệ")
-    password_hash :str = Field(..., min_length=6, max_length=30, description="Nhập mật khẩu của bạn")
+    email: EmailStr = Field(..., description="Email đăng nhập hợp lệ")
+    password: str = Field(..., min_length=6, max_length=30, description="Mật khẩu đăng nhập")
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
 
 class UserResponse(BaseModel):
     id: int
@@ -23,3 +28,4 @@ class UserResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+

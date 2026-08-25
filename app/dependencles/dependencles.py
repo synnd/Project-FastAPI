@@ -22,8 +22,10 @@ def get_current_user(
 
 
 def get_current_admin(current_user= Depends(get_current_user)):
-    if current_user['role'] !="ADMIN":
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, 'Không quyền admin không hợp lệ')
+    role = current_user.get('role', '')
+    if str(role).upper() != "ADMIN":
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, 'Quyền admin không hợp lệ')
 
     return current_user
+
     
