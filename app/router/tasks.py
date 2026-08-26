@@ -61,7 +61,7 @@ def create_task(
 )
 def get_project_tasks(
     id: int, # project_id
-    status: Optional[TaskStatus] = None,
+    status_project: Optional[TaskStatus] = None,
     priority: Optional[TaskPriority] = None,
     assignee_id: Optional[int] = None,
     search: Optional[str] = None,
@@ -77,7 +77,7 @@ def get_project_tasks(
         project_id=id,
         current_user=current_user,
         db=db,
-        status=status,
+        status_project=status_project,
         priority=priority,
         assignee_id=assignee_id,
         search=search,
@@ -130,7 +130,7 @@ def get_task_detail(
     "/{id}",
     status_code=status.HTTP_200_OK,
     summary="Cập nhật công việc từng phần",
-    description="Cập nhật thông tin công việc. Chỉ OWNER có toàn quyền, MEMBER chỉ được đổi trạng thái (status). Những trường không gửi lên sẽ không bị ghi đè."
+    description="Cập nhật thông tin công việc. Chỉ OWNER có toàn quyền, MEMBER không được đổi người nhận task. Những trường không gửi lên sẽ không bị ghi đè."
 )
 def update_task(
     id: int,

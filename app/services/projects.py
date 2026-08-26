@@ -68,11 +68,16 @@ def get_project_by_id_service(
               .join(ProjectMemberModel, ProjectModel.id == ProjectMemberModel.project_id)\
               .filter(ProjectMemberModel.user_id == current_id)\
               .filter(ProjectModel.is_deleted == False)
-              
-    if id:
-        query = query.filter(ProjectModel.id == id).all()
+                      
+    # 2. Lấy dự án theo ID cụ thể
+    project = query.filter(ProjectModel.id == id).first()
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Không tìm thấy dự án hoặc bạn không có quyền truy cập"
+        )
             
-    return query
+    return project
 
 def delete_project_by_id_service(id : int, current_user: dict, db: Session):
     current_id = current_user['id']

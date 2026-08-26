@@ -32,7 +32,7 @@ def user_register(req : Request, new_user: CreateUser, db : Session = Depends(ge
 def user_login(req: Request, login_data: UserLogin, db: Session = Depends(get_db)):
     
     data = user_login_service(login_data, db)
-    return create_response(request=req, status_code=status.HTTP_201_CREATED, message="Tạo người dùng thành công!", data=data)
+    return create_response(request=req, status_code=status.HTTP_201_CREATED, message="Đăng nhập thành công thành công!", data=data)
 
 
 @router.post(

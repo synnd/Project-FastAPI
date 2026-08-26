@@ -61,7 +61,7 @@ def get_project(
         request=req,
         status_code=status.HTTP_200_OK, 
         message="Lấy danh sách dự án thành công!",
-        data=result_data
+        data= result_data
     )
 
 
@@ -78,7 +78,8 @@ def get_project_by_id(
     current_user = Depends(get_current_user)
 ):
     result = get_project_by_id_service(id, current_user, db)
-    result_data = [ProjectResponse.model_validate(r) for r in result]
+    
+    result_data = ProjectResponse.model_validate(result)
     return create_response(
         request=req,
         status_code=status.HTTP_200_OK, 

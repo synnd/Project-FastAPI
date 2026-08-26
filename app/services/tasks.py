@@ -76,7 +76,7 @@ def get_project_tasks_service(
     project_id: int,
     current_user: dict,
     db: Session,
-    status: TaskStatus = None,
+    status_project: TaskStatus = None,
     priority: TaskPriority = None,
     assignee_id: int = None,
     search: str = None,
@@ -103,7 +103,7 @@ def get_project_tasks_service(
     query = db.query(TaskModel).filter(TaskModel.project_id == project_id)
     
     # 3. Lọc theo trạng thái (status)
-    if status:
+    if status_project:
         query = query.filter(TaskModel.status == status)
         
     # 4. Lọc theo độ ưu tiên (priority)
@@ -198,30 +198,37 @@ def update_task_service(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Bạn không phải là thành viên của dự án này"
         )
+    # 4 .Phân quyền chỉnh sửa
+    if project.owner_id != current_id and task.assignee_id != current_id:
+        raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bạn không có quyền sửa task này, chỉ OWNER và thành viên được giao task mới có quyền sửa"
+            )
         
-    # 4. Trích xuất các trường được truyền lên (loại bỏ các trường không được gửi)
+      
+    # 5. Trích xuất các trường được truyền lên (loại bỏ các trường không được gửi)
     update_data = task_update.model_dump(exclude_unset=True) 
     
     if not update_data:
         return task 
-        
-    # 5. Phân quyền chỉnh sửa sử dụng tập hợp 
+
+    #  quyền owner
     is_owner = (project.owner_id == current_id)
+
     
-    if not is_owner:
-        # Nếu là MEMBER thường: Chỉ được cập nhật trạng thái 'status'
-        allowed_member_fields = {"status"}
+    # 6. Nếu là MEMBER, không được phép thay đổi người nhận task
+    if not is_owner and "assignee_id" in update_data:
+        new_assignee = update_data["assignee_id"]
         
-        # Lấy các trường gửi lên trừ đi các trường cho phép
-        invalid_fields = set(update_data.keys()) - allowed_member_fields
-        if invalid_fields:
+        if new_assignee != current_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Thành viên thường chỉ được phép cập nhật trạng thái (status) công việc"
+                detail="Thành viên không được phép thay đổi người nhận task"
             )
-            
-    # 6. Nếu có thay đổi người được giao, kiểm tra xem người đó có thuộc dự án không
+        
+    # 7. KIỂM TRA HỢP LỆ (Chỉ dành cho Owner): Khi giao task cho người khác, check xem người đó có trong dự án không
     if "assignee_id" in update_data and update_data["assignee_id"] is not None:
+        
         assignee_id = update_data["assignee_id"]
         assignee_membership = db.query(ProjectMemberModel).filter(
             ProjectMemberModel.project_id == project.id,
@@ -231,10 +238,10 @@ def update_task_service(
         if not assignee_membership:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Người được giao việc không phải là thành viên của dự án"
+                detail="Người được giao việc mới phải là thành viên của dự án"
             )
             
-    # 7. Tiến hành cập nhật vào DB
+    # 8. Tiến hành cập nhật vào DB
     for key, value in update_data.items():
         setattr(task, key, value)
         
@@ -305,17 +312,7 @@ def add_comment_to_task_service(
     db.commit()
     db.refresh(new_comment)
     
-    return {
-        "id": new_comment.id,
-        "task_id": new_comment.task_id,
-        "user_id": new_comment.user_id,
-        "full_name": user.full_name,
-        "email": user.email,
-        "content": new_comment.content,
-        "created_at": new_comment.created_at
-    }
-
-
+    return  
 # Xem bình luận
 def get_task_comments_service(
     task_id: int,
