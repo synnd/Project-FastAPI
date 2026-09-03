@@ -10,8 +10,13 @@ def create_user_service(new_user: CreateUser, db: Session):
     if user_email:
         return None
     
+    full_name = new_user.full_name.strip().split(" ")
+    
+    if len(full_name) <2:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,"Tên phải có ít nhất 2 từ")
+    
     new_user_register = UserModel(
-        email = new_user.email,
+        email = new_user.email.lower().strip(),
         full_name = new_user.full_name,
         password_hash = hash_password(new_user.password_hash)
     )
@@ -46,5 +51,6 @@ def user_login_service(user : UserLogin, db: Session):
     return {
         'access_token': create_access_token(token_payload),
         'refresh_token': create_refresh_token(token_payload),
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "User": token_payload
     }

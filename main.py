@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from app.database.database import Base, engine
+from app.database.database import Base, engine,get_db
 from app.models.projects import ProjectMemberModel, ProjectModel
 from app.models.users import UserModel
 from app.models.tasks import TaskModel, CommentModel, AttachmentModel
@@ -16,6 +16,8 @@ from app.router.tasks import router as task_router
 Base.metadata.create_all(engine)
 
 from app.dependencles.dependencles import get_current_admin
+from app.models.users import UserModel
+from sqlalchemy.orm import Session
 
 app = FastAPI(
     title=" TEAM PROJECT MANAGEMENT API",
@@ -26,9 +28,12 @@ app = FastAPI(
 register_exception_handlers(app)
 
 @app.get('/', tags=["SYSTEM"])
-def start_project(current_admin = Depends(get_current_admin)):
+def start_project(current_admin = Depends(get_current_admin),db : Session=Depends(get_db)):
+    
+    total_user = db.query(UserModel).count()
     return {
-        "message": "Server đang hoạt động"
+        "message": "Server đang hoạt động",
+        "total_user" :total_user
     }
 
 app.include_router(auth_router)

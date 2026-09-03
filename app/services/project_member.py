@@ -139,7 +139,10 @@ def get_project_members_service(
                 .filter(ProjectMemberModel.project_id == id)\
                 .all()
                 
-    # 4. Làm phẳng cấu trúc dữ liệu trả về
+    # 4. Sắp xếp danh sách thành viên: OWNER lên đầu, các vai trò khác ở sau
+    members_sorted = sorted(members, key=lambda m: 0 if m.role == MemberRole.OWNER else 1)
+                 
+    # 5. Làm phẳng cấu trúc dữ liệu trả về
     result = [
         {
             "user_id": m.user.id,
@@ -148,7 +151,7 @@ def get_project_members_service(
             "role": m.role,
             "joined_at": m.joined_at
         }
-        for m in members
+        for m in members_sorted
     ]
     
     return result

@@ -118,6 +118,7 @@ def get_task_detail(
 ):
     task = get_task_by_id_service(id, current_user, db)
     task_data = TaskResponse.model_validate(task)
+    
     return create_response(
         request=req,
         status_code=status.HTTP_200_OK,
@@ -244,22 +245,28 @@ def upload_attachment(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Kích thước tệp vượt quá giới hạn 5MB"
         )
-        
+    
     allowed_extensions = {".pdf", ".docx", ".doc", ".png", ".jpg", ".jpeg", ".zip", ".rar", ".txt"}
+    
+    # Tách đuôi của file 
     _, file_ext = os.path.splitext(file.filename)
+    
     if file_ext.lower() not in allowed_extensions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Loại tệp không được hỗ trợ. Chỉ cho phép: {', '.join(allowed_extensions)}"
         )
         
+    # Tạo thư mục tự động     
     UPLOAD_DIR = "uploads"
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
-        
+   
+    #  Đặt tên file duy nhất bằng mã UUID 
     unique_filename = f"{uuid.uuid4().hex}_{file.filename}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
     
+    # Mở file ghi dữ dữ liệu
     with open(file_path, "wb") as buffer:
         buffer.write(file.file.read())
         

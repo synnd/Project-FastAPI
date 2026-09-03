@@ -5,7 +5,7 @@ from app.models.projects import ProjectModel, ProjectMemberModel, MemberRole
 from app.models.users import UserModel
 from app.models.tasks import TaskModel, TaskPriority, TaskStatus, CommentModel, AttachmentModel
 from app.schemas.task import CreateTask, CreateComment, UpdateTask
-
+from typing import Optional
 # Tạo task mới
 def create_task_service(
     project_id: int,  
@@ -50,7 +50,7 @@ def create_task_service(
             ProjectMemberModel.project_id == project.id,
             ProjectMemberModel.user_id == task.assignee_id
         ).first()
-        
+                                                                              
         if not assignee_membership:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -104,7 +104,7 @@ def get_project_tasks_service(
     
     # 3. Lọc theo trạng thái (status)
     if status_project:
-        query = query.filter(TaskModel.status == status)
+        query = query.filter(TaskModel.status == status_project)
         
     # 4. Lọc theo độ ưu tiên (priority)
     if priority:
@@ -127,7 +127,7 @@ def get_project_tasks_service(
         query = query.order_by(sort_column.asc())
     else:
         query = query.order_by(sort_column.desc())
-        
+ 
     # 8. Phân trang (Pagination)
     total = query.count()
     offset = (page - 1) * limit
@@ -312,7 +312,15 @@ def add_comment_to_task_service(
     db.commit()
     db.refresh(new_comment)
     
-    return  
+    return   {
+        "id": new_comment.id,
+        "task_id": new_comment.task_id,
+        "user_id": new_comment.user_id,
+        "full_name": user.full_name if user else current_user.get("full_name", ""),
+        "email": user.email if user else current_user.get("email", ""),
+        "content": new_comment.content,
+        "created_at": new_comment.created_at
+        }
 # Xem bình luận
 def get_task_comments_service(
     task_id: int,
